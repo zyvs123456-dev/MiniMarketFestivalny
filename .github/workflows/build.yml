@@ -19,6 +19,7 @@ jobs:
 
       - name: Build APK No Daemon
         run: |
+          # Создаем необходимые директории
           mkdir -p app/src/main/java/com/festivalny/minimarket
           mkdir -p app/src/main/res/values
 
@@ -131,7 +132,33 @@ jobs:
           }
           EOF
 
-          # Скачиваем Gradle и запускаем СТРОГО без демона (--no-daemon)
+          # 6. Корневой build.gradle (ИСПРАВЛЕНИЕ ОШИБКИ ПОИСКА ПЛАГИНА)
+          cat << 'EOF' > build.gradle
+          buildscript {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:8.1.1'
+              }
+          }
+          EOF
+
+          # 7. Установка Android SDK (Необходимо для чистого Ubuntu)
+          export ANDROID_HOME=$PWD/android-sdk
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          
+          # Принимаем лицензии и устанавливаем нужную версию платформы
+          yes | sdkmanager --licenses > /dev/null 2>&1
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1
+
+          # 8. Скачиваем Gradle и запускаем сборку
           wget -q https://services.gradle.org/distributions/gradle-8.1.1-bin.zip
           unzip -q gradle-8.1.1-bin.zip
           export PATH=$PWD/gradle-8.1.1/bin:$PATH
