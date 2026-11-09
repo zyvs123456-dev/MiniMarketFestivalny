@@ -87,20 +87,7 @@ jobs:
           EOF
 
           # build.gradle (project)
-          cat << 'EOF' > build.gradle
-          plugins {
-              id 'com.android.application' version '8.1.1' apply false
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-          task clean(type: Delete) {
-              delete rootProject.buildDir
-          }
-          EOF
+          echo "allprojects { repositories { google(); mavenCentral() } }" > build.gradle
 
           # settings.gradle
           cat << 'EOF' > settings.gradle
@@ -125,21 +112,17 @@ jobs:
           # app/build.gradle
           cat << 'EOF' > app/build.gradle
           plugins {
-              id 'com.android.application'
+              id 'com.android.application' version '7.4.2'
           }
           android {
               namespace 'com.festivalny.minimarket'
-              compileSdk 34
+              compileSdk 33
               defaultConfig {
                   applicationId "com.festivalny.minimarket"
                   minSdk 21
-                  targetSdk 34
+                  targetSdk 33
                   versionCode 1
                   versionName "1.0"
-              }
-              compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_17
-                  targetCompatibility JavaVersion.VERSION_17
               }
               buildTypes {
                   release {
@@ -149,7 +132,7 @@ jobs:
           }
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.9.0'
+              implementation 'com.google.android.material:material:1.8.0'
           }
           EOF
 
