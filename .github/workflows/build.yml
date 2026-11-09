@@ -85,47 +85,44 @@ jobs:
           }
           EOF
 
-          # 4. build.gradle (корень)
-          cat << 'EOF' > build.gradle
-          buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath "com.android.tools.build:gradle:7.4.2"
-              }
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-          task clean(type: Delete) {
-              delete rootProject.buildDir
-          }
-          EOF
-
-          # 5. settings.gradle
+          # 4. settings.gradle (централизованные репозитории для Gradle 8)
           cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
           rootProject.name = "MiniMarketFestivalny"
           include ':app'
           EOF
 
-          # 6. app/build.gradle
+          # 5. app/build.gradle
           cat << 'EOF' > app/build.gradle
-          apply plugin: 'com.android.application'
-
+          plugins {
+              id 'com.android.application' version '8.1.1'
+          }
           android {
               namespace 'com.festivalny.minimarket'
-              compileSdk 33
+              compileSdk 34
               defaultConfig {
                   applicationId "com.festivalny.minimarket"
                   minSdk 21
-                  targetSdk 33
+                  targetSdk 34
                   versionCode 1
                   versionName "1.0"
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
               }
               buildTypes {
                   release {
@@ -135,14 +132,12 @@ jobs:
           }
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.8.0'
+              implementation 'com.google.android.material:material:1.9.0'
           }
           EOF
 
-          # Генерация обертки и запуск сборки
-          gradle wrapper --gradle-version 7.5
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          # Запуск сборки без лишних оберток
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
