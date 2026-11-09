@@ -17,7 +17,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Download Gradle and Build APK
+      - name: Build APK No Daemon
         run: |
           mkdir -p app/src/main/java/com/festivalny/minimarket
           mkdir -p app/src/main/res/values
@@ -131,13 +131,12 @@ jobs:
           }
           EOF
 
-          # Скачиваем официальный Gradle 8.1.1 напрямую в проект и запускаем сборку
+          # Скачиваем Gradle и запускаем СТРОГО без демона (--no-daemon)
           wget -q https://services.gradle.org/distributions/gradle-8.1.1-bin.zip
           unzip -q gradle-8.1.1-bin.zip
           export PATH=$PWD/gradle-8.1.1/bin:$PATH
 
-          gradle -v
-          gradle assembleDebug --stacktrace
+          gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
