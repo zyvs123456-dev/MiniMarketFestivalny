@@ -22,13 +22,13 @@ jobs:
         with:
           cache-disabled: true
 
-      - name: Create Project Structure and Build APK
+      - name: Generate Project and Build APK
         run: |
           mkdir -p app/src/main/java/com/festivalny/minimarket
           mkdir -p app/src/main/res/values
-          mkdir -p app/src/main/res/drawable
+          mkdir -p gradle/wrapper
 
-          # AndroidManifest.xml
+          # 1. AndroidManifest.xml
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               package="com.festivalny.minimarket">
@@ -52,14 +52,14 @@ jobs:
           </manifest>
           EOF
 
-          # strings.xml
+          # 2. strings.xml
           cat << 'EOF' > app/src/main/res/values/strings.xml
           <resources>
               <string name="app_name">Mini Market Festivalny</string>
           </resources>
           EOF
 
-          # MainActivity.java
+          # 3. MainActivity.java
           cat << 'EOF' > app/src/main/java/com/festivalny/minimarket/MainActivity.java
           package com.festivalny.minimarket;
 
@@ -86,10 +86,7 @@ jobs:
           }
           EOF
 
-          # build.gradle (project)
-          echo "allprojects { repositories { google(); mavenCentral() } }" > build.gradle
-
-          # settings.gradle
+          # 4. settings.gradle
           cat << 'EOF' > settings.gradle
           pluginManagement {
               repositories {
@@ -109,20 +106,24 @@ jobs:
           include ':app'
           EOF
 
-          # app/build.gradle
+          # 5. app/build.gradle (без внешнего корневого build.gradle)
           cat << 'EOF' > app/build.gradle
           plugins {
-              id 'com.android.application' version '7.4.2'
+              id 'com.android.application' version '8.1.1'
           }
           android {
               namespace 'com.festivalny.minimarket'
-              compileSdk 33
+              compileSdk 34
               defaultConfig {
                   applicationId "com.festivalny.minimarket"
                   minSdk 21
-                  targetSdk 33
+                  targetSdk 34
                   versionCode 1
                   versionName "1.0"
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
               }
               buildTypes {
                   release {
@@ -132,10 +133,11 @@ jobs:
           }
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.8.0'
+              implementation 'com.google.android.material:material:1.9.0'
           }
           EOF
 
+          # Запуск сборки
           gradle assembleDebug --stacktrace
 
       - name: Upload APK
