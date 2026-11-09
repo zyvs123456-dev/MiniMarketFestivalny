@@ -101,7 +101,14 @@ jobs:
           include ':app'
           EOF
 
-          # 6. app/build.gradle (БЕЗ ВЕРСИИ ПЛАГИНА)
+          # 6. КОРНЕВОЙ build.gradle (Современный синтаксис плагинов)
+          cat << 'EOF' > build.gradle
+          plugins {
+              id 'com.android.application' version '8.1.1' apply false
+          }
+          EOF
+
+          # 7. app/build.gradle (БЕЗ ВЕРСИИ ПЛАГИНА)
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
@@ -132,19 +139,6 @@ jobs:
           }
           EOF
 
-          # 7. Корневой build.gradle (ЗДЕСЬ УКАЗАНА ВЕРСИЯ ПЛАГИНА)
-          cat << 'EOF' > build.gradle
-          buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.1'
-              }
-          }
-          EOF
-
           # 8. Скачиваем и настраиваем Android SDK
           export ANDROID_HOME=$PWD/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
@@ -154,12 +148,13 @@ jobs:
           unzip -q commandlinetools-linux-11076708_latest.zip -d $ANDROID_HOME/cmdline-tools
           mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
           
-          # Указываем Gradle, где лежит SDK (создаем local.properties)
+          # Записываем путь к SDK в глобальный конфиг Gradle
           echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "android.useAndroidX=true" >> gradle.properties
 
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           
-          # Принимаем лицензии и устанавливаем нужные инструменты
+          # Принимаем лицензии и устанавливаем инструменты
           yes | sdkmanager --licenses > /dev/null 2>&1
           sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" > /dev/null 2>&1
 
@@ -168,8 +163,8 @@ jobs:
           unzip -q gradle-8.1.1-bin.zip
           export PATH=$PWD/gradle-8.1.1/bin:$PATH
 
-          # Запускаем сборку с дополнительным логированием
-          gradle assembleDebug --no-daemon --stacktrace
+          # Запускаем сборку. Добавлен флаг --info для детальных логов в случае падения
+          gradle assembleDebug --no-daemon --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
