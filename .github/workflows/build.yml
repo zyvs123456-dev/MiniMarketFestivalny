@@ -17,11 +17,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Create Minimal Android Project Structure
+      - name: Create Project and Build APK
         run: |
           mkdir -p app/src/main/java/com/festivalny/minimarket
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/drawable
+          mkdir -p gradle/wrapper
 
           # AndroidManifest.xml
           cat << 'EOF' > app/src/main/AndroidManifest.xml
@@ -95,4 +96,82 @@ jobs:
           allprojects {
               repositories {
                   google()
-                  mavenCentral
+                  mavenCentral()
+              }
+          }
+          task clean(type: Delete) {
+              delete rootProject.buildDir
+          }
+          EOF
+
+          # settings.gradle
+          cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "MiniMarketFestivalny"
+          include ':app'
+          EOF
+
+          # app/build.gradle
+          cat << 'EOF' > app/build.gradle
+          plugins {
+              id 'com.android.application'
+          }
+          android {
+              namespace 'com.festivalny.minimarket'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.festivalny.minimarket"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.9.0'
+          }
+          EOF
+
+          # gradle-wrapper.properties
+          cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.1.1-bin.zip
+          networkTimeout=10000
+          validateDistributionUrl=true
+          zipStoreUrl=wrapper/dists
+          EOF
+
+          # Запуск сборки через gradle (если нет обертки, скачает автоматически)
+          gradle wrapper || true
+          chmod +x gradlew || true
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
