@@ -101,10 +101,10 @@ jobs:
           include ':app'
           EOF
 
-          # 5. app/build.gradle
+          # 5. app/build.gradle (УБРАНА ВЕРСИЯ ПЛАГИНА)
           cat << 'EOF' > app/build.gradle
           plugins {
-              id 'com.android.application' version '8.1.1'
+              id 'com.android.application'
           }
           android {
               namespace 'com.festivalny.minimarket'
@@ -132,7 +132,7 @@ jobs:
           }
           EOF
 
-          # 6. Корневой build.gradle (ИСПРАВЛЕНИЕ ОШИБКИ ПОИСКА ПЛАГИНА)
+          # 6. Корневой build.gradle
           cat << 'EOF' > build.gradle
           buildscript {
               repositories {
@@ -145,7 +145,7 @@ jobs:
           }
           EOF
 
-          # 7. Установка Android SDK (Необходимо для чистого Ubuntu)
+          # 7. Установка Android SDK
           export ANDROID_HOME=$PWD/android-sdk
           mkdir -p $ANDROID_HOME/cmdline-tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
@@ -154,7 +154,7 @@ jobs:
           
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           
-          # Принимаем лицензии и устанавливаем нужную версию платформы
+          # Принимаем лицензии и устанавливаем платформу
           yes | sdkmanager --licenses > /dev/null 2>&1
           sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1
 
