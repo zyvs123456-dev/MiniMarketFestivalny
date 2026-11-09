@@ -17,7 +17,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Generate Project and Build APK
+      - name: Download Gradle and Build APK
         run: |
           mkdir -p app/src/main/java/com/festivalny/minimarket
           mkdir -p app/src/main/res/values
@@ -131,12 +131,13 @@ jobs:
           }
           EOF
 
-          # Создаем официальную обертку Gradle в проекте
-          gradle wrapper --gradle-version 8.1.1
-          chmod +x gradlew
+          # Скачиваем официальный Gradle 8.1.1 напрямую в проект и запускаем сборку
+          wget -q https://services.gradle.org/distributions/gradle-8.1.1-bin.zip
+          unzip -q gradle-8.1.1-bin.zip
+          export PATH=$PWD/gradle-8.1.1/bin:$PATH
 
-          # Запуск сборки через локальный gradlew
-          ./gradlew assembleDebug --stacktrace
+          gradle -v
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
