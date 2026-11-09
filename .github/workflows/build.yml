@@ -89,7 +89,7 @@ jobs:
                   mavenCentral()
               }
               dependencies {
-                  classpath "com.android.tools.build:gradle:7.4.2"
+                  classpath "com.android.tools.build:gradle:8.1.1"
               }
           }
           allprojects {
@@ -130,13 +130,17 @@ jobs:
           }
           android {
               namespace 'com.festivalny.minimarket'
-              compileSdk 33
+              compileSdk 34
               defaultConfig {
                   applicationId "com.festivalny.minimarket"
                   minSdk 21
-                  targetSdk 33
+                  targetSdk 34
                   versionCode 1
                   versionName "1.0"
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
               }
               buildTypes {
                   release {
@@ -146,15 +150,30 @@ jobs:
           }
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.8.0'
+              implementation 'com.google.android.material:material:1.9.0'
           }
           EOF
 
-      - name: Build APK
-        run: chmod +x gradlew || true; ./gradlew assembleDebug || gradle assembleDebug
+          # gradle-wrapper.properties
+          mkdir -p gradle/wrapper
+          cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.1.1-bin.zip
+          networkTimeout=10000
+          validateDistributionUrl=true
+          zipStoreUrl=wrapper/dists
+          ```
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+5. Добавь в самый конец файла выполнение сборки (убедись, что блоки идут друг за другом):
+   ```yaml
+         - name: Build APK
+           run: |
+             chmod +x gradlew || true
+             ./gradlew assembleDebug --stacktrace
+
+         - name: Upload APK
+           uses: actions/upload-artifact@v4
+           with:
+             name: app-debug
+             path: app/build/outputs/apk/debug/app-debug.apk
