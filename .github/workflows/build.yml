@@ -19,11 +19,11 @@ jobs:
 
       - name: Build APK No Daemon
         run: |
-          # Создаем необходимые директории
+          # 1. Создаем структуру проекта
           mkdir -p app/src/main/java/com/festivalny/minimarket
           mkdir -p app/src/main/res/values
 
-          # 1. AndroidManifest.xml
+          # 2. AndroidManifest.xml
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               package="com.festivalny.minimarket">
@@ -47,14 +47,14 @@ jobs:
           </manifest>
           EOF
 
-          # 2. strings.xml
+          # 3. strings.xml
           cat << 'EOF' > app/src/main/res/values/strings.xml
           <resources>
               <string name="app_name">Mini Market Festivalny</string>
           </resources>
           EOF
 
-          # 3. MainActivity.java
+          # 4. MainActivity.java
           cat << 'EOF' > app/src/main/java/com/festivalny/minimarket/MainActivity.java
           package com.festivalny.minimarket;
 
@@ -81,7 +81,7 @@ jobs:
           }
           EOF
 
-          # 4. settings.gradle
+          # 5. settings.gradle
           cat << 'EOF' > settings.gradle
           pluginManagement {
               repositories {
@@ -101,7 +101,7 @@ jobs:
           include ':app'
           EOF
 
-          # 5. app/build.gradle (УБРАНА ВЕРСИЯ ПЛАГИНА)
+          # 6. app/build.gradle (БЕЗ ВЕРСИИ ПЛАГИНА)
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
@@ -132,7 +132,7 @@ jobs:
           }
           EOF
 
-          # 6. Корневой build.gradle
+          # 7. Корневой build.gradle (ЗДЕСЬ УКАЗАНА ВЕРСИЯ ПЛАГИНА)
           cat << 'EOF' > build.gradle
           buildscript {
               repositories {
@@ -145,24 +145,30 @@ jobs:
           }
           EOF
 
-          # 7. Установка Android SDK
+          # 8. Скачиваем и настраиваем Android SDK
           export ANDROID_HOME=$PWD/android-sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
           mkdir -p $ANDROID_HOME/cmdline-tools
+          
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q commandlinetools-linux-11076708_latest.zip -d $ANDROID_HOME/cmdline-tools
           mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
           
+          # Указываем Gradle, где лежит SDK (создаем local.properties)
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
           
-          # Принимаем лицензии и устанавливаем платформу
+          # Принимаем лицензии и устанавливаем нужные инструменты
           yes | sdkmanager --licenses > /dev/null 2>&1
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" > /dev/null 2>&1
 
-          # 8. Скачиваем Gradle и запускаем сборку
+          # 9. Скачиваем Gradle и запускаем сборку
           wget -q https://services.gradle.org/distributions/gradle-8.1.1-bin.zip
           unzip -q gradle-8.1.1-bin.zip
           export PATH=$PWD/gradle-8.1.1/bin:$PATH
 
+          # Запускаем сборку с дополнительным логированием
           gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
